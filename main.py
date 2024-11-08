@@ -2,6 +2,7 @@ import pickle
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
+from matplotlib import pyplot
 import pandas
 
 # csv format:
@@ -20,6 +21,11 @@ except:
     dataset = pandas.read_csv('Fraud.csv')
     with open(dataset_path, "wb") as fp:
         pickle.dump(dataset, fp)
+
+
+# visualization (takes a while)
+#pyplot.scatter(dataset[['isFraud']], dataset[['amount']])
+#pyplot.show()
 
 # encode strings
 label_encoder = preprocessing.LabelEncoder()
@@ -53,17 +59,25 @@ def evaluate(threshold, data, actual):
     true_positive_count = 0
     merged_data = data.copy()
     merged_data.insert(8, "isFraud", actual, True)
-    false_negative_count = len(merged_data.loc[((merged_data['amount'] - (median)) <= threshold) & ((merged_data['isFraud']) == 1)])
-    true_positive_count = len(merged_data.loc[((merged_data['amount'] - (median)) > threshold) & ((merged_data['isFraud']) == 1)])
+    potential_fraud = merged_data.loc[(merged_data['amount'] < threshold)]
+    actual_fraud = potential_fraud.loc[(potential_fraud['isFraud'] == 1)]
+    not_fraud = potential_fraud.loc[(potential_fraud['isFraud'] == 0)]
+    true_positive_count = len(actual_fraud)
+    total_fraud_count = len(merged_data.loc[(merged_data['isFraud'] == 1)])
+    false_negative_count = total_fraud_count - len(actual_fraud)
+    false_positive_count = len(not_fraud)
 
     # calculate recall metric
-    print("Recall: " + str(true_positive_count / (true_positive_count + false_negative_count)))
+    recall = (true_positive_count / (true_positive_count + false_negative_count))
+    print("Recall: " + str(recall))
+    
+    # calculate precision metric
+    precision = (true_positive_count / (true_positive_count + false_positive_count))
+    print("Precision: " + str(precision))
+
+    # calculate F1-score
+    print("F1-Score: " + str(2 * ((precision * recall) / (precision + recall))))
+
+evaluate(10000000, evaluation_X, evaluation_y)
 
 
-evaluate(1000000, evaluation_X, evaluation_y)
-evaluate(2000000, evaluation_X, evaluation_y)
-evaluate(3000000, evaluation_X, evaluation_y)
-evaluate(4000000, evaluation_X, evaluation_y)
-evaluate(5000000, evaluation_X, evaluation_y)
-evaluate(6000000, evaluation_X, evaluation_y)
-evaluate(7000000, evaluation_X, evaluation_y)
