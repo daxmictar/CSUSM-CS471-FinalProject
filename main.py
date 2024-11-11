@@ -99,11 +99,11 @@ grid_search.fit(training_X, training_y)
 best_params = grid_search.best_params_
 best_score = grid_search.best_score_
 
-print("best params:", best_params)
-print(f"best recall from gridsearch: {best_score*100:.2f}%")
+print(f"best params: {best_params}")
+print(f"best recall from gridsearch tuning: {best_score*100:.2f}%")
 
 # evaluate the best estimator of the decision tree with the tuned hyperparams 
 best_model = grid_search.best_estimator_
-evaluation_predictions = best_model.predict(evaluation_X)
-evaluation_recall = recall_score(evaluation_y, evaluation_predictions)
-print(f"Evaluation Recall of Best Model: {evaluation_recall*100:.2f}%")
+testing_predictions = best_model.predict(testing_X)
+testing_recall = recall_score(testing_y, testing_predictions)
+print(f"recall of best estimator from GridSearchCV on test set: {testing_recall*100:.2f}%")
