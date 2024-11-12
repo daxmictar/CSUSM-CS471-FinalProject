@@ -3,6 +3,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, recall_score, classification_report, confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from matplotlib import pyplot
 import pandas
@@ -80,7 +81,7 @@ def evaluate(threshold, data, actual):
     # calculate F1-score
     print("F1-Score: " + str(2 * ((precision * recall) / (precision + recall))))
 
-evaluate(10000000, evaluation_X, evaluation_y)
+#evaluate(10000000, evaluation_X, evaluation_y)
 
 
 # == training the model ==
@@ -97,29 +98,66 @@ def dt_evaluate(X_dataset, y_dataset, grid_search):
     best_model = grid_search.best_estimator_
     testing_predictions = best_model.predict(X_dataset)
     testing_recall = recall_score(y_dataset, testing_predictions)
-    print(f"recall of best estimator from GridSearchCV on test set: {testing_recall*100:.2f}%")
+    print(f"recall of best estimator from GridSearchCV on test set for DT: {testing_recall*100:.2f}%")
 
     # print classification report
     print(classification_report(y_dataset, testing_predictions, target_names=['isNotFraud', 'isFraud']))
 
     # print confusion matrix
-    print(f"Confusion matrix:\n " + str(confusion_matrix(y_dataset, testing_predictions)))
+    print(f"Confusion matrix (DT):\n " + str(confusion_matrix(y_dataset, testing_predictions)))
+
+
+def rf_evaluate(X_dataset, y_dataset, grid_search):
+    # get the best tuned parameters and the score, which should be recall
+    best_params = grid_search.best_params_
+    best_score = grid_search.best_score_
+
+    print(f"best params: {best_params}")
+    print(f"best recall from gridsearch tuning: {best_score*100:.2f}%")
+
+    # evaluate the best estimator of the decision tree with the tuned hyperparams 
+    best_model = grid_search.best_estimator_
+    testing_predictions = best_model.predict(X_dataset)
+    testing_recall = recall_score(y_dataset, testing_predictions)
+    print(f"recall of best estimator from GridSearchCV on test set for RF: {testing_recall*100:.2f}%")
+
+    # print classification report
+    print(classification_report(y_dataset, testing_predictions, target_names=['isNotFraud', 'isFraud']))
+
+    # print confusion matrix
+    print(f"Confusion matrix (RF):\n " + str(confusion_matrix(y_dataset, testing_predictions)))
 
 # hyperparams to tune
-param_grid = {
-#    'max_depth': [i for i in range(2, 5)],
+param_grid_dt = {
     'max_depth': [4],
-#    'min_samples_split': [i for i in range(2, 5)]
     'min_samples_split': [2]
 }
 
 # tune the hyperparams and then fit the training data on it
 decision_tree = DecisionTreeClassifier(random_state=130)
-grid_search = GridSearchCV(estimator=decision_tree, param_grid=param_grid, cv=5, scoring='recall', n_jobs=-1, verbose=1)
-grid_search.fit(training_X, training_y)
+grid_search_dt = GridSearchCV(estimator=decision_tree, param_grid=param_grid_dt, cv=5, scoring='recall', n_jobs=-1, verbose=1)
+grid_search_dt.fit(training_X, training_y)
 
 # evaluate on evaluation dataset and tune hyperparameters based on result
-dt_evaluate(evaluation_X, evaluation_y, grid_search)
+dt_evaluate(evaluation_X, evaluation_y, grid_search_dt)
 
 # perform final testing on testing dataset
-dt_evaluate(testing_X, testing_y, grid_search)
+dt_evaluate(testing_X, testing_y, grid_search_dt)
+
+# using best params from FirstTrainingRF.png
+param_grid_rf = {
+    'n_estimators': [25],
+    'max_depth': [2],
+    'min_samples_leaf': [1]
+}
+
+random_forest = RandomForestClassifier(class_weight='balanced', random_state=130)
+grid_search_rf = GridSearchCV(estimator=random_forest, param_grid=param_grid_rf, scoring='recall', n_jobs=-1, verbose=1)
+# random forest wants a 1d array, hence the ravel()
+grid_search_rf.fit(training_X, training_y.values.ravel())
+
+# eval on evaluation dataset and tune hyperparams based on the result
+rf_evaluate(evaluation_X, evaluation_y, grid_search_rf)
+
+# perform final testing on testing dataset for RF
+rf_evaluate(testing_X, testing_y, grid_search_rf)
