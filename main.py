@@ -1,6 +1,8 @@
 import pickle
 from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import accuracy_score, recall_score, classification_report, confusion_matrix
+from sklearn.tree import DecisionTreeClassifier
 from sklearn import preprocessing
 from matplotlib import pyplot
 import pandas
@@ -50,9 +52,9 @@ training_y = temp_y
 training_X, evaluation_X, training_y, evaluation_y = train_test_split(training_X, training_y, test_size = 0.20)
 
 # calculate statistics
-median = float(training_X[['amount']].median().iloc[0])
+#median = float(training_X[['amount']].median().iloc[0])
 
-print("Median = " + str(median))
+#print("Median = " + str(median))
 
 def evaluate(threshold, data, actual):
     false_negative_count = 0
@@ -81,3 +83,43 @@ def evaluate(threshold, data, actual):
 evaluate(10000000, evaluation_X, evaluation_y)
 
 
+# == training the model ==
+
+def dt_evaluate(X_dataset, y_dataset, grid_search):
+    # get the best tuned parameters and the score, which should be recall
+    best_params = grid_search.best_params_
+    best_score = grid_search.best_score_
+
+    print(f"best params: {best_params}")
+    print(f"best recall from gridsearch tuning: {best_score*100:.2f}%")
+
+    # evaluate the best estimator of the decision tree with the tuned hyperparams 
+    best_model = grid_search.best_estimator_
+    testing_predictions = best_model.predict(X_dataset)
+    testing_recall = recall_score(y_dataset, testing_predictions)
+    print(f"recall of best estimator from GridSearchCV on test set: {testing_recall*100:.2f}%")
+
+    # print classification report
+    print(classification_report(y_dataset, testing_predictions, target_names=['isNotFraud', 'isFraud']))
+
+    # print confusion matrix
+    print(f"Confusion matrix:\n " + str(confusion_matrix(y_dataset, testing_predictions)))
+
+# hyperparams to tune
+param_grid = {
+#    'max_depth': [i for i in range(2, 5)],
+    'max_depth': [4],
+#    'min_samples_split': [i for i in range(2, 5)]
+    'min_samples_split': [2]
+}
+
+# tune the hyperparams and then fit the training data on it
+decision_tree = DecisionTreeClassifier(random_state=130)
+grid_search = GridSearchCV(estimator=decision_tree, param_grid=param_grid, cv=5, scoring='recall', n_jobs=-1, verbose=1)
+grid_search.fit(training_X, training_y)
+
+# evaluate on evaluation dataset and tune hyperparameters based on result
+dt_evaluate(evaluation_X, evaluation_y, grid_search)
+
+# perform final testing on testing dataset
+dt_evaluate(testing_X, testing_y, grid_search)
