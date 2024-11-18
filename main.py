@@ -17,11 +17,11 @@ Key Features:
 import pickle  # Used for saving and loading datasets for efficiency.
 from imblearn.over_sampling import SMOTE  # For oversampling in imbalanced datasets.
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, recall_score, classification_report, confusion_matrix
+from sklearn.metrics import recall_score, classification_report, confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing   # Tools for encoding categorical variables.
-from matplotlib import pyplot  # For data visualization.
+#from matplotlib import pyplot  # For data visualization.
 import pandas       # Used for handling tabular data.
 
 # csv format:
@@ -70,11 +70,6 @@ training_y = temp_y
 # Further split the training data into training and evaluation sets (60/20 split).
 training_X, evaluation_X, training_y, evaluation_y = train_test_split(training_X, training_y, test_size=0.20)
 
-
-# calculate statistics
-# median = float(training_X[['amount']].median().iloc[0])
-
-# print("Median = " + str(median))
 
 # Function to evaluate the rules-based model.
 def evaluate(threshold, data, actual):
