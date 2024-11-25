@@ -62,14 +62,13 @@ y = dataset[['isFraud']]
 # Split the dataset into training and testing sets (80/20 split).
 training_X, testing_X, training_y, testing_y = train_test_split(X, y, test_size=0.20)
 
+# Further split the training data into training and evaluation sets (60/20 split).
+training_X, evaluation_X, training_y, evaluation_y = train_test_split(training_X, training_y, test_size=0.20)
+
 # Use SMOTE to oversample the minority class and balance the training data.
 temp_X, temp_y = SMOTE(random_state=130).fit_resample(training_X, training_y)
 training_X = temp_X
 training_y = temp_y
-
-# Further split the training data into training and evaluation sets (60/20 split).
-training_X, evaluation_X, training_y, evaluation_y = train_test_split(training_X, training_y, test_size=0.20)
-
 
 # Function to evaluate the rules-based model.
 def evaluate(threshold, data, actual):
