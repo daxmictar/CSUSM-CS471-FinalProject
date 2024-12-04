@@ -188,8 +188,7 @@ param_grid_dt = {
 # Train Decision Tree with GridSearchCV.
 # Tune the hyperparams and then fit the training data on it
 decision_tree = DecisionTreeClassifier(random_state=130)
-grid_search_dt = GridSearchCV(estimator=decision_tree, param_grid=param_grid_dt, cv=5, scoring='recall', n_jobs=-1,
-                              verbose=1)
+grid_search_dt = GridSearchCV(estimator=decision_tree, param_grid=param_grid_dt, cv=5, scoring='recall', n_jobs=12, verbose=1)
 grid_search_dt.fit(training_X, training_y)
 
 # Evaluate on evaluation dataset and tune hyperparameters based on result
@@ -202,13 +201,13 @@ dt_evaluate(testing_X, testing_y, grid_search_dt)
 # using best params from FirstTrainingRF.png
 param_grid_rf = {
     'n_estimators': [25],  # Number of trees in the forest.
-    'max_depth': [2],  # Maximum tree depth.
-    'min_samples_leaf': [1]  # Minimum samples at leaf nodes.
+    'max_depth': [4],  # Maximum tree depth.
+#    'min_samples_leaf': [1]  # Minimum samples at leaf nodes.
 }
 
 # Train Random Forest with GridSearchCV.
 random_forest = RandomForestClassifier(class_weight='balanced', random_state=130)
-grid_search_rf = GridSearchCV(estimator=random_forest, param_grid=param_grid_rf, scoring='recall', n_jobs=-1, verbose=1)
+grid_search_rf = GridSearchCV(estimator=random_forest, param_grid=param_grid_rf, scoring='recall', n_jobs=12, verbose=1)
 # random forest wants a 1d array, hence the ravel()
 grid_search_rf.fit(training_X, training_y.values.ravel())
 
